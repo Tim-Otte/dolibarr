@@ -33,6 +33,11 @@ require_once DOL_DOCUMENT_ROOT.'/core/class/commonobject.class.php';
 class MyObject extends CommonObject
 {
 	/**
+	 * @var string ID of module.
+	 */
+	public $module = 'mymodule';
+
+	/**
 	 * @var string ID to identify managed object.
 	 */
 	public $element = 'myobject';
@@ -1070,6 +1075,11 @@ class MyObjectLine extends CommonObjectLine
 {
 	// To complete with content of an object MyObjectLine
 	// We should have a field rowid, fk_myobject and position
+
+	/**
+	 * @var int  Does object support extrafields ? 0=No, 1=Yes
+	 */
+	public $isextrafieldmanaged = 0;
 
 	/**
 	 * Constructor

@@ -25,6 +25,7 @@ if (!defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 .info-box.info-box-sm {
     min-height: 80px;
     margin-bottom: 10px;
+    background: #fff;
 }
 .opened-dash-board-wrap .info-box.info-box-sm {
     border-radius: 0 0 0 20px;
@@ -77,7 +78,12 @@ if (!defined('ISLOADEDBYSTEELSHEET')) die('Must be call by steelsheet'); ?>
 	text-align: center;
 	font-size: 45px;
 	line-height: 90px;
-	background: rgba(0, 0, 0, 0.08) !important
+	background: rgba(0, 0, 0, 0.08) !important;
+}
+
+.info-box-module .info-box-icon {
+    padding-top: 5px;
+    padding-bottom: 5px;
 }
 .info-box-sm .info-box-icon {
     height: 80px;
@@ -249,7 +255,7 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 }
 
 .customer-back {
-	background-color: #99a17d !important;
+	background-color: #95a55d !important;
 	color: #FFF !important;
 	padding: 2px;
 	margin: 2px;
@@ -269,10 +275,10 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 	<?php echo $prefix; ?>color: #6c6aa8 !important;
 }
 .bg-infobox-action{
-	<?php echo $prefix; ?>color: #a47080 !important;
+	<?php echo $prefix; ?>color: #b06080 !important;
 }
 .bg-infobox-propal, .bg-infobox-facture, .bg-infobox-commande {
-	<?php echo $prefix; ?>color: #99a17d !important;
+	<?php echo $prefix; ?>color: #95a55d !important;
 }
 .bg-infobox-supplier_proposal, .bg-infobox-invoice_supplier, .bg-infobox-order_supplier {
 	<?php echo $prefix; ?>color: #599caf !important;
@@ -281,7 +287,7 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 	<?php echo $prefix; ?>color: #46a676 !important;
 }
 .bg-infobox-bank_account{
-	<?php echo $prefix; ?>color: #b0a53e !important;
+	<?php echo $prefix; ?>color: #b0bb39 !important;
 }
 .bg-infobox-adherent, .bg-infobox-member {
 	<?php echo $prefix; ?>color: #79633f !important;
@@ -300,12 +306,12 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 	color: #6c6aa8 !important;
 }
 .infobox-action{
-	color: #a47080 !important;
+	color: #b06080 !important;
 }
 .infobox-propal,
 .infobox-facture,
 .infobox-commande{
-	color: #99a17d !important;
+	color: #95a55d !important;
 }
 .infobox-supplier_proposal,
 .infobox-invoice_supplier,
@@ -316,7 +322,7 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 	color: #46a676 !important;
 }
 .infobox-bank_account{
-	color: #b0a53e !important;
+	color: #b0bb39 !important;
 }
 .infobox-adherent, .infobox-member {
 	color: #79633f !important;
@@ -436,7 +442,7 @@ if (GETPOSTISSET('THEME_SATURATE_RATIO')) $conf->global->THEME_SATURATE_RATIO = 
 
 
 .info-box-module .info-box-content {
-	height: 6.4em;
+	height: 98px;
 }
 /* Disabled. This break the responsive on smartphone
 .box{

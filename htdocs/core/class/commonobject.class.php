@@ -238,23 +238,29 @@ abstract class CommonObject
 
 	/**
 	 * @var string
-	 * @see getFullAddress(), state
+	 * @see getFullAddress(), $state
 	 */
     public $state_code;
 
-    /**
-	 * @var string
-	 * @see getFullAddress(), region
+	/**
+	 * @var int
+	 * @see getFullAddress(), $region_code, $region
 	 */
-	public $region;
+	public $region_id;
 
 	/**
 	 * @var string
-	 * @see getFullAddress(), region
+	 * @see getFullAddress(), $region_id, $region
 	 */
     public $region_code;
 
-	/**
+    /**
+     * @var string
+     * @see getFullAddress(), $region_id, $region_code
+     */
+    public $region;
+
+    /**
 	 * @var int
 	 * @see fetch_barcode()
 	 */
@@ -314,7 +320,7 @@ abstract class CommonObject
 	 * @var string
 	 * @see SetDocModel()
 	 */
-	public $modelpdf;
+	public $model_pdf;
 
 	/**
 	 * @var string
@@ -2375,7 +2381,8 @@ abstract class CommonObject
 		$resql = $this->db->query($sql);
 		if ($resql)
 		{
-			$this->modelpdf = $modelpdf;
+			$this->model_pdf = $modelpdf;
+			$this->modelpdf = $modelpdf;	// For bakward compatibility
 			return 1;
 		} else {
 			dol_print_error($this->db);
@@ -4538,7 +4545,7 @@ abstract class CommonObject
 	 * Common function for all objects extending CommonObject for generating documents
 	 *
 	 * @param 	string 		$modelspath 	Relative folder where generators are placed
-	 * @param 	string 		$modele 		Generator to use. Caller must set it to obj->modelpdf or GETPOST('modelpdf','alpha') for example.
+	 * @param 	string 		$modele 		Generator to use. Caller must set it to obj->model_pdf or GETPOST('model_pdf','alpha') for example.
 	 * @param 	Translate 	$outputlangs 	Output language to use
 	 * @param 	int 		$hidedetails 	1 to hide details. 0 by default
 	 * @param 	int 		$hidedesc 		1 to hide product description. 0 by default
@@ -5141,7 +5148,7 @@ abstract class CommonObject
 				}
 			}
 			$sql .= " FROM ".MAIN_DB_PREFIX.$table_element."_extrafields";
-			$sql .= " WHERE fk_object = ".$rowid;
+			$sql .= " WHERE fk_object = ".((int) $rowid);
 
 			//dol_syslog(get_class($this)."::fetch_optionals get extrafields data for ".$this->table_element, LOG_DEBUG);		// Too verbose
 			$resql = $this->db->query($sql);
@@ -7756,11 +7763,11 @@ abstract class CommonObject
 		$sql = 'SELECT '.$fieldlist;
 		$sql .= ' FROM '.MAIN_DB_PREFIX.$this->table_element;
 
-		if (!empty($id))  $sql .= ' WHERE rowid = '.$id;
+		if (!empty($id)) $sql .= ' WHERE rowid = '.$id;
 		elseif (!empty($ref)) $sql .= " WHERE ref = ".$this->quote($ref, $this->fields['ref']);
 		else $sql .= ' WHERE 1 = 1'; // usage with empty id and empty ref is very rare
 		if (empty($id) && isset($this->ismultientitymanaged) && $this->ismultientitymanaged == 1) $sql .= ' AND entity IN ('.getEntity($this->table_element).')';
-		if ($morewhere)   $sql .= $morewhere;
+		if ($morewhere) $sql .= $morewhere;
 		$sql .= ' LIMIT 1'; // This is a fetch, to be sure to get only one record
 
 		$res = $this->db->query($sql);
@@ -8146,9 +8153,8 @@ abstract class CommonObject
 
 		if (empty($error)) {
 			// Remove extrafields
-			if (!$error)
-			{
-				$tmpobjectline = new $tmpforobjectlineclass($this->db);
+			$tmpobjectline = new $tmpforobjectlineclass($this->db);
+			if (!isset($tmpobjectline->isextrafieldmanaged) || !empty($tmpobjectline->isextrafieldmanaged)) {
 				$tmpobjectline->id = $idline;
 				$result = $tmpobjectline->deleteExtraFields();
 				if ($result < 0)

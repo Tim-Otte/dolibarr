@@ -354,7 +354,7 @@ class pdf_standard extends ModeleExpenseReport
 					$pdf->SetTextColor(0, 0, 0);
 
 					$pdf->setTopMargin($tab_top_newpage);
-                    if (empty($showpricebeforepagebreak)) {
+                    if (empty($showpricebeforepagebreak) && ($i !== ($nblines - 1))) {
                         $pdf->setPageOrientation('', 1, $heightforfooter); // The only function to edit the bottom margin of current page to set it.
                     } else {
                         $pdf->setPageOrientation('', 1, $heightforfooter + $heightforfreetext + $heightforinfotot); // The only function to edit the bottom margin of current page to set it.
@@ -642,7 +642,7 @@ class pdf_standard extends ModeleExpenseReport
     /**
 	 *  Show top header of page.
 	 *
-	 *  @param	PDF			$pdf     		Object PDF
+	 *  @param	TCPDF		$pdf     		Object PDF
 	 *  @param  Object		$object     	Object to show
 	 *  @param  int	    	$showaddress    0=no, 1=yes
 	 *  @param  Translate	$outputlangs	Object lang for output
@@ -866,7 +866,7 @@ class pdf_standard extends ModeleExpenseReport
 	/**
 	 *   Show table for lines
 	 *
-	 *   @param     PDF			$pdf     		Object PDF
+	 *   @param     TCPDF		$pdf     		Object PDF
 	 *   @param		int			$tab_top		Tab top
 	 *   @param		int			$tab_height		Tab height
 	 *   @param		int			$nexY			next y
@@ -980,7 +980,7 @@ class pdf_standard extends ModeleExpenseReport
 	/**
 	 *  Show payments table
 	 *
-	 *  @param	PDF			$pdf           Object PDF
+	 *  @param	TCPDF		$pdf            Object PDF
 	 *  @param  Object		$object         Object invoice
 	 *  @param  int			$posy           Position y in PDF
 	 *  @param  Translate	$outputlangs    Object langs for output
@@ -1092,7 +1092,7 @@ class pdf_standard extends ModeleExpenseReport
 	/**
 	 *  Show footer of page. Need this->emetteur object
      *
-	 *  @param  PDF			$pdf     			PDF
+	 *  @param  TCPDF		$pdf     			PDF
 	 *  @param  Object		$object				Object to show
 	 *  @param  Translate	$outputlangs		Object lang for output
 	 *  @param  int			$hidefreetext		1=Hide free text

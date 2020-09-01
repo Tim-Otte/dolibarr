@@ -156,7 +156,7 @@ if ($action == 'valid' && $user->rights->facture->creer)
 	    }
 	}
 
-	if ($bankaccount <= 0) {
+	if ($bankaccount <= 0 && $pay != "delayed") {
 		$errormsg = $langs->trans("ErrorFieldRequired", $langs->transnoentitiesnoconv("BankAccount"));
 		$error++;
 	}
@@ -241,6 +241,7 @@ if ($action == 'valid' && $user->rights->facture->creer)
 		$payment->datepaye = $now;
 		$payment->fk_account = $bankaccount;
 		$payment->amounts[$invoice->id] = $amountofpayment;
+		if ($pay == 'cash') $payment->pos_change = price2num(GETPOST('excess', 'alpha'));
 
 		// If user has not used change control, add total invoice payment
 		// Or if user has used change control and the amount of payment is higher than remain to pay, add the remain to pay
@@ -249,8 +250,10 @@ if ($action == 'valid' && $user->rights->facture->creer)
 		$payment->paiementid = $paiementid;
 		$payment->num_payment = $invoice->ref;
 
-		$payment->create($user);
-		$payment->addPaymentToBank($user, 'payment', '(CustomerInvoicePayment)', $bankaccount, '', '');
+		if ($pay != "delayed") {
+			$payment->create($user);
+			$payment->addPaymentToBank($user, 'payment', '(CustomerInvoicePayment)', $bankaccount, '', '');
+		}
 
 		$remaintopay = $invoice->getRemainToPay(); // Recalculate remain to pay after the payment is recorded
 		if ($remaintopay == 0) {
@@ -398,6 +401,7 @@ if ($action == "deleteline") {
         $invoice->deleteline($deletelineid);
         $invoice->fetch($placeid);
     }
+	if (count($invoice->lines)==0) $invoice->delete($user);
 }
 
 if ($action == "delete") {
@@ -813,6 +817,7 @@ $( document ).ready(function() {
 		if ($result > 0)
 		{
 			$adh->ref = $adh->getFullName($langs);
+			if (empty($adh->statut)) { $s .= "<s>"; }
 			$s .= $adh->getFullName($langs);
 			$s .= ' - '.$adh->type;
 			if ($adh->datefin)
@@ -825,6 +830,7 @@ $( document ).ready(function() {
 				$s .= '<br>'.$langs->trans("SubscriptionNotReceived");
 				if ($adh->statut > 0) $s .= " ".img_warning($langs->trans("Late")); // displays delay Pictogram only if not a draft and not terminated
 			}
+      		if (empty($adh->statut)) { $s .= "</s>"; }
 		} else {
 			$s .= '<br>'.$langs->trans("ThirdpartyNotLinkedToMember");
 		}
