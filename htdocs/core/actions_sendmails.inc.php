@@ -263,12 +263,12 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 
 		if (dol_strlen($sendto))
 		{
-            // Define $urlwithroot
-            $urlwithouturlroot = preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));
-            $urlwithroot = $urlwithouturlroot.DOL_URL_ROOT; // This is to use external domain name found into config file
-            //$urlwithroot=DOL_MAIN_URL_ROOT;					// This is to use same domain name than current
+			// Define $urlwithroot
+			$urlwithouturlroot = preg_replace('/'.preg_quote(DOL_URL_ROOT, '/').'$/i', '', trim($dolibarr_main_url_root));
+			$urlwithroot = $urlwithouturlroot.DOL_URL_ROOT; // This is to use external domain name found into config file
+			//$urlwithroot=DOL_MAIN_URL_ROOT;					// This is to use same domain name than current
 
-		    require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+			require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
 
 			$langs->load("commercial");
 
@@ -300,8 +300,8 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 			}
 
 			$replyto = dol_string_nospecial($_POST['replytoname'], ' ', array(",")).' <'.$_POST['replytomail'].'>';
-			$message = GETPOST('message', 'none');
-			$subject = GETPOST('subject', 'none');
+			$message = GETPOST('message', 'restricthtml');
+			$subject = GETPOST('subject', 'restricthtml');
 
 			// Make a change into HTML code to allow to include images from medias directory with an external reabable URL.
 			// <img alt="" src="/dolibarr_dev/htdocs/viewimage.php?modulepart=medias&amp;entity=1&amp;file=image/ldestailleur_166x166.jpg" style="height:166px; width:166px" />
@@ -321,7 +321,7 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 
 			if ($action == 'send' || $action == 'relance')
 			{
-				$actionmsg2 = $langs->transnoentities('MailSentBy').' '.CMailFile::getValidAddress($from, 4, 0, 1).' '.$langs->transnoentities('To').' '.CMailFile::getValidAddress($sendto, 4, 0, 1);
+				$actionmsg2 = $langs->transnoentities('MailSentBy').' '.CMailFile::getValidAddress($from, 4, 0, 1).' '.$langs->transnoentities('at').' '.CMailFile::getValidAddress($sendto, 4, 0, 1);
 				if ($message)
 				{
 					$actionmsg = $langs->transnoentities('MailFrom').': '.dol_escape_htmltag($from);
@@ -419,7 +419,7 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 					// Initialisation of datas of object to call trigger
 					if (is_object($object))
 					{
-					    if (empty($actiontypecode)) $actiontypecode = 'AC_OTH_AUTO'; // Event insert into agenda automatically
+						if (empty($actiontypecode)) $actiontypecode = 'AC_OTH_AUTO'; // Event insert into agenda automatically
 
 						$object->socid = $sendtosocid; // To link to a company
 						$object->sendtoid = $sendtoid; // To link to contact-addresses. This is an array.
@@ -456,7 +456,7 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 
 							if ($error) {
 								setEventMessages($object->error, $object->errors, 'errors');
-    						}
+							}
 						}
 						// End call of triggers
 					}
@@ -473,12 +473,16 @@ if (($action == 'send' || $action == 'relance') && !$_POST['addfile'] && !$_POST
 				} else {
 					$langs->load("other");
 					$mesg = '<div class="error">';
-					if ($mailfile->error)
-					{
+					if ($mailfile->error) {
 						$mesg .= $langs->transnoentities('ErrorFailedToSendMail', dol_escape_htmltag($from), dol_escape_htmltag($sendto));
 						$mesg .= '<br>'.$mailfile->error;
 					} else {
-						$mesg .= 'No mail sent. Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
+						$mesg .= $langs->transnoentities('ErrorFailedToSendMail', dol_escape_htmltag($from), dol_escape_htmltag($sendto));
+						if (!empty($conf->global->MAIN_DISABLE_ALL_MAILS)) {
+							$mesg .= '<br>Feature is disabled by option MAIN_DISABLE_ALL_MAILS';
+						} else {
+							$mesg .= '<br>Unkown Error, please refers to your administrator';
+						}
 					}
 					$mesg .= '</div>';
 

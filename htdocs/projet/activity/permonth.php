@@ -46,8 +46,7 @@ $taskid = GETPOST('taskid', 'int');
 $mine = 0;
 if ($mode == 'mine') $mine = 1;
 
-$projectid = '';
-$projectid = isset($_GET["id"]) ? $_GET["id"] : $_POST["projectid"];
+$projectid = isset($_GET["id"]) ? GETPOST("id", "int", 1) : GETPOST("projectid", "int");
 
 // Security check
 $socid = 0;
@@ -365,7 +364,7 @@ $nav .= ' <button type="submit" name="button_search_x" value="x" class="bordertr
 $picto = 'calendarweek';
 
 print '<form name="addtime" method="POST" action="'.$_SERVER["PHP_SELF"].'">';
-print '<input type="hidden" name="token" value="'.$_SESSION['newtoken'].'">';
+print '<input type="hidden" name="token" value="'.newToken().'">';
 print '<input type="hidden" name="action" value="addtime">';
 print '<input type="hidden" name="mode" value="'.$mode.'">';
 print '<input type="hidden" name="day" value="'.$day.'">';
@@ -373,7 +372,7 @@ print '<input type="hidden" name="month" value="'.$month.'">';
 print '<input type="hidden" name="year" value="'.$year.'">';
 
 $head = project_timesheet_prepare_head($mode, $usertoprocess);
-dol_fiche_head($head, 'inputpermonth', $langs->trans('TimeSpent'), -1, 'task');
+print dol_get_fiche_head($head, 'inputpermonth', $langs->trans('TimeSpent'), -1, 'projecttask');
 
 // Show description of content
 print '<div class="hideonsmartphone opacitymedium">';
@@ -393,7 +392,7 @@ if ($mine || ($usertoprocess->id == $user->id))
 }
 print '</div>';
 
-dol_fiche_end();
+print dol_get_fiche_end();
 
 print '<div class="floatright right'.($conf->dol_optimize_smallscreen ? ' centpercent' : '').'">'.$nav.'</div>'; // We move this before the assign to components so, the default submit button is not the assign to.
 
@@ -502,7 +501,10 @@ $colspan = 5;
 // By default, we can edit only tasks we are assigned to
 $restrictviewformytask = (empty($conf->global->PROJECT_TIME_SHOW_TASK_NOT_ASSIGNED) ? 1 : 0);
 
+// Get if user is available or not for each day
 $isavailable = array();
+// TODO See code into perweek.php to initialize isavailable array
+
 
 if (count($tasksarray) > 0)
 {

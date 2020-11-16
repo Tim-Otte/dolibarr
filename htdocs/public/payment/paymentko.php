@@ -25,12 +25,14 @@
  *                  This token can be used to get more informations.
  */
 
-define("NOLOGIN", 1); // This means this output page does not require to be logged.
-define("NOCSRFCHECK", 1); // We accept to go on this page from external web site.
+if (!defined('NOLOGIN'))		define("NOLOGIN", 1); // This means this output page does not require to be logged.
+if (!defined('NOCSRFCHECK'))	define("NOCSRFCHECK", 1); // We accept to go on this page from external web site.
+if (!defined('NOIPCHECK'))		define('NOIPCHECK', '1'); // Do not check IP defined into conf $dolibarr_main_restrict_ip
+if (!defined('NOBROWSERNOTIF')) define('NOBROWSERNOTIF', '1');
 
 // For MultiCompany module.
 // Do not use GETPOST here, function is not defined and define must be done before including main.inc.php
-// TODO This should be useless. Because entity must be retreive from object ref and not from url.
+// TODO This should be useless. Because entity must be retrieve from object ref and not from url.
 $entity = (!empty($_GET['e']) ? (int) $_GET['e'] : (!empty($_POST['e']) ? (int) $_POST['e'] : 1));
 if (is_numeric($entity)) define("DOLENTITY", $entity);
 
@@ -48,10 +50,10 @@ $langs->loadLangs(array("main", "other", "dict", "bills", "companies", "paybox",
 
 if (!empty($conf->paypal->enabled))
 {
-    $PAYPALTOKEN = GETPOST('TOKEN');
-    if (empty($PAYPALTOKEN)) $PAYPALTOKEN = GETPOST('token');
-    $PAYPALPAYERID = GETPOST('PAYERID');
-    if (empty($PAYPALPAYERID)) $PAYPALPAYERID = GETPOST('PayerID');
+	$PAYPALTOKEN = GETPOST('TOKEN');
+	if (empty($PAYPALTOKEN)) $PAYPALTOKEN = GETPOST('token');
+	$PAYPALPAYERID = GETPOST('PAYERID');
+	if (empty($PAYPALPAYERID)) $PAYPALPAYERID = GETPOST('PayerID');
 }
 if (!empty($conf->paybox->enabled))
 {
@@ -71,14 +73,14 @@ $paymentmethod = '';
 $reg = array();
 if (preg_match('/PM=([^\.]+)/', $FULLTAG, $reg))
 {
-    $paymentmethod = $reg[1];
+	$paymentmethod = $reg[1];
 }
 if (empty($paymentmethod))
 {
-    dol_print_error(null, 'The back url does not contains a parameter fulltag that should help us to find the payment method used');
-    exit;
+	dol_print_error(null, 'The back url does not contains a parameter fulltag that should help us to find the payment method used');
+	exit;
 } else {
-    dol_syslog("paymentmethod=".$paymentmethod);
+	dol_syslog("paymentmethod=".$paymentmethod);
 }
 
 
@@ -115,81 +117,81 @@ dol_syslog("POST=".$tracepost, LOG_DEBUG, 0, '_payment');
 
 if (!empty($_SESSION['ipaddress']))      // To avoid to make action twice
 {
-    // Get on url call
-    $fulltag            = $FULLTAG;
-    $onlinetoken        = empty($PAYPALTOKEN) ? $_SESSION['onlinetoken'] : $PAYPALTOKEN;
-    $payerID            = empty($PAYPALPAYERID) ? $_SESSION['payerID'] : $PAYPALPAYERID;
-    // Set by newpayment.php
-    $paymentType        = $_SESSION['PaymentType'];
-    $currencyCodeType   = $_SESSION['currencyCodeType'];
-    $FinalPaymentAmt    = $_SESSION['FinalPaymentAmt'];
-    // From env
-    $ipaddress          = $_SESSION['ipaddress'];
-    $errormessage       = $_SESSION['errormessage'];
+	// Get on url call
+	$fulltag            = $FULLTAG;
+	$onlinetoken        = empty($PAYPALTOKEN) ? $_SESSION['onlinetoken'] : $PAYPALTOKEN;
+	$payerID            = empty($PAYPALPAYERID) ? $_SESSION['payerID'] : $PAYPALPAYERID;
+	// Set by newpayment.php
+	$paymentType        = $_SESSION['PaymentType'];
+	$currencyCodeType   = $_SESSION['currencyCodeType'];
+	$FinalPaymentAmt    = $_SESSION['FinalPaymentAmt'];
+	// From env
+	$ipaddress          = $_SESSION['ipaddress'];
+	$errormessage       = $_SESSION['errormessage'];
 
-    if (is_object($object) && method_exists($object, 'call_trigger')) {
-    	// Call trigger
-	    $result = $object->call_trigger('PAYMENTONLINE_PAYMENT_KO', $user);
-	    if ($result < 0) $error++;
-	    // End call triggers
-    }
+	if (is_object($object) && method_exists($object, 'call_trigger')) {
+		// Call trigger
+		$result = $object->call_trigger('PAYMENTONLINE_PAYMENT_KO', $user);
+		if ($result < 0) $error++;
+		// End call triggers
+	}
 
-    // Send an email
-    $sendemail = '';
+	// Send an email
+	$sendemail = '';
    	if (!empty($conf->global->ONLINE_PAYMENT_SENDEMAIL))
    	{
-        $sendemail = $conf->global->ONLINE_PAYMENT_SENDEMAIL;
-    }
+		$sendemail = $conf->global->ONLINE_PAYMENT_SENDEMAIL;
+	}
 
-    // Send warning of error to administrator
-    if ($sendemail)
-    {
-    	$companylangs = new Translate('', $conf);
-    	$companylangs->setDefaultLang($mysoc->default_lang);
-    	$companylangs->loadLangs(array('main', 'members', 'bills', 'paypal', 'paybox'));
+	// Send warning of error to administrator
+	if ($sendemail)
+	{
+		$companylangs = new Translate('', $conf);
+		$companylangs->setDefaultLang($mysoc->default_lang);
+		$companylangs->loadLangs(array('main', 'members', 'bills', 'paypal', 'paybox'));
 
-        $from = $conf->global->MAILING_EMAIL_FROM;
-        $sendto = $sendemail;
+		$from = $conf->global->MAILING_EMAIL_FROM;
+		$sendto = $sendemail;
 
-    	// Define link to login card
-    	$appli = constant('DOL_APPLICATION_TITLE');
-    	if (!empty($conf->global->MAIN_APPLICATION_TITLE))
-    	{
-    	    $appli = $conf->global->MAIN_APPLICATION_TITLE;
-    	    if (preg_match('/\d\.\d/', $appli))
-    	    {
-    	        if (!preg_match('/'.preg_quote(DOL_VERSION).'/', $appli)) $appli .= " (".DOL_VERSION.")"; // If new title contains a version that is different than core
-    	    } else $appli .= " ".DOL_VERSION;
-    	} else $appli .= " ".DOL_VERSION;
+		// Define link to login card
+		$appli = constant('DOL_APPLICATION_TITLE');
+		if (!empty($conf->global->MAIN_APPLICATION_TITLE))
+		{
+			$appli = $conf->global->MAIN_APPLICATION_TITLE;
+			if (preg_match('/\d\.\d/', $appli))
+			{
+				if (!preg_match('/'.preg_quote(DOL_VERSION).'/', $appli)) $appli .= " (".DOL_VERSION.")"; // If new title contains a version that is different than core
+			} else $appli .= " ".DOL_VERSION;
+		} else $appli .= " ".DOL_VERSION;
 
-    	$urlback = $_SERVER["REQUEST_URI"];
-    	$topic = '['.$appli.'] '.$companylangs->transnoentitiesnoconv("NewOnlinePaymentFailed");
-    	$content = "";
-    	$content .= '<font color="orange">'.$companylangs->transnoentitiesnoconv("ValidationOfOnlinePaymentFailed")."</font>\n";
+		$urlback = $_SERVER["REQUEST_URI"];
+		$topic = '['.$appli.'] '.$companylangs->transnoentitiesnoconv("NewOnlinePaymentFailed");
+		$content = "";
+		$content .= '<font color="orange">'.$companylangs->transnoentitiesnoconv("ValidationOfOnlinePaymentFailed")."</font>\n";
 
-    	$content .= "<br><br>\n";
-    	$content .= '<u>'.$companylangs->transnoentitiesnoconv("TechnicalInformation").":</u><br>\n";
-    	$content .= $companylangs->transnoentitiesnoconv("OnlinePaymentSystem").': <strong>'.$paymentmethod."</strong><br>\n";
-    	$content .= $companylangs->transnoentitiesnoconv("ReturnURLAfterPayment").': '.$urlback."<br>\n";
-    	$content .= $companylangs->transnoentitiesnoconv("Error").': '.$errormessage."<br>\n";
-    	$content .= "<br>\n";
-    	$content .= "tag=".$fulltag." token=".$onlinetoken." paymentType=".$paymentType." currencycodeType=".$currencyCodeType." payerId=".$payerID." ipaddress=".$ipaddress." FinalPaymentAmt=".$FinalPaymentAmt;
+		$content .= "<br><br>\n";
+		$content .= '<u>'.$companylangs->transnoentitiesnoconv("TechnicalInformation").":</u><br>\n";
+		$content .= $companylangs->transnoentitiesnoconv("OnlinePaymentSystem").': <strong>'.$paymentmethod."</strong><br>\n";
+		$content .= $companylangs->transnoentitiesnoconv("ReturnURLAfterPayment").': '.$urlback."<br>\n";
+		$content .= $companylangs->transnoentitiesnoconv("Error").': '.$errormessage."<br>\n";
+		$content .= "<br>\n";
+		$content .= "tag=".$fulltag." token=".$onlinetoken." paymentType=".$paymentType." currencycodeType=".$currencyCodeType." payerId=".$payerID." ipaddress=".$ipaddress." FinalPaymentAmt=".$FinalPaymentAmt;
 
-    	$ishtml = dol_textishtml($content); // May contain urls
+		$ishtml = dol_textishtml($content); // May contain urls
 
-    	require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
-    	$mailfile = new CMailFile($topic, $sendto, $from, $content, array(), array(), array(), '', '', 0, $ishtml);
+		require_once DOL_DOCUMENT_ROOT.'/core/class/CMailFile.class.php';
+		$mailfile = new CMailFile($topic, $sendto, $from, $content, array(), array(), array(), '', '', 0, $ishtml);
 
-    	$result = $mailfile->sendfile();
-    	if ($result)
-    	{
-    		dol_syslog("EMail sent to ".$sendto, LOG_DEBUG, 0, '_payment');
-    	} else {
-    		dol_syslog("Failed to send EMail to ".$sendto, LOG_ERR, 0, '_payment');
-    	}
-    }
+		$result = $mailfile->sendfile();
+		if ($result)
+		{
+			dol_syslog("EMail sent to ".$sendto, LOG_DEBUG, 0, '_payment');
+		} else {
+			dol_syslog("Failed to send EMail to ".$sendto, LOG_ERR, 0, '_payment');
+		}
+	}
 
-    unset($_SESSION['ipaddress']);
+	unset($_SESSION['ipaddress']);
 }
 
 $head = '';
@@ -236,7 +238,7 @@ if ($urllogo)
 	print '>';
 	print '</div>';
 	if (empty($conf->global->MAIN_HIDE_POWERED_BY)) {
-		print '<div class="poweredbypublicpayment opacitymedium right"><a href="https://www.dolibarr.org" target="dolibarr">'.$langs->trans("PoweredBy").'<br><img src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg" width="80px"></a></div>';
+		print '<div class="poweredbypublicpayment opacitymedium right"><a class="poweredbyhref" href="https://www.dolibarr.org?utm_medium=website&utm_source=poweredby" target="dolibarr" rel="noopener">'.$langs->trans("PoweredBy").'<br><img class="poweredbyimg" src="'.DOL_URL_ROOT.'/theme/dolibarr_logo.svg" width="80px"></a></div>';
 	}
 	print '</div>';
 }
@@ -251,7 +253,7 @@ $key = 'ONLINE_PAYMENT_MESSAGE_KO';
 if (!empty($conf->global->$key)) print $conf->global->$key;
 
 $type = GETPOST('s', 'alpha');
-$ref = GETPOST('ref', 'none');
+$ref = GETPOST('ref', 'alphanohtml');
 $tag = GETPOST('tag', 'alpha');
 require_once DOL_DOCUMENT_ROOT.'/core/lib/payments.lib.php';
 if ($type || $tag)
