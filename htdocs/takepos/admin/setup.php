@@ -82,11 +82,6 @@ if ($action == 'set')
 		$res = dolibarr_set_const($db, "TAKEPOS_SUMUP_AFFILIATE", GETPOST('TAKEPOS_SUMUP_AFFILIATE', 'alpha'), 'chaine', 0, '', $conf->entity);
 		$res = dolibarr_set_const($db, "TAKEPOS_SUMUP_APPID", GETPOST('TAKEPOS_SUMUP_APPID', 'alpha'), 'chaine', 0, '', $conf->entity);
 	}
-	if ($conf->global->TAKEPOS_ORDER_NOTES == 1)
-	{
-		$extrafields = new ExtraFields($db);
-		$extrafields->addExtraField('order_notes', 'Order notes', 'varchar', 0, 255, 'facturedet', 0, 0, '', '', 0, '', 0, 1);
-	}
 
 	dol_syslog("admin/cashdesk: level ".GETPOST('level', 'alpha'));
 
@@ -184,8 +179,10 @@ foreach ($dirmodels as $reldir)
 						// Show example of numbering module
 						print '<td class="nowrap">';
 						$tmp = $module->getExample();
-						if (preg_match('/^Error/', $tmp)) print '<div class="error">'.$langs->trans($tmp).'</div>';
-						elseif ($tmp == 'NotConfigured') print $langs->trans($tmp);
+						if (preg_match('/^Error/', $tmp)) {
+							$langs->load("errors");
+							print '<div class="error">'.$langs->trans($tmp).'</div>';
+						} elseif ($tmp == 'NotConfigured') print $langs->trans($tmp);
 						else print $tmp;
 						print '</td>'."\n";
 
@@ -460,7 +457,7 @@ if ($conf->global->TAKEPOS_ENABLE_SUMUP) {
 
 print '<br>';
 
-print '<div class="center"><input type="submit" class="button" value="'.$langs->trans("Save").'"></div>';
+print '<div class="center"><input type="submit" class="button button-save" value="'.$langs->trans("Save").'"></div>';
 
 print "</form>\n";
 

@@ -111,6 +111,12 @@ class SupplierProposal extends CommonObject
 
 	/**
 	 * @var integer|string date_livraison
+	 * @deprecated
+	 */
+	public $date_livraison;
+
+	/**
+	 * @var integer|string date_livraison
 	 */
 	public $delivery_date;
 
@@ -165,9 +171,7 @@ class SupplierProposal extends CommonObject
 	public $remise_percent = 0;
 	public $remise_absolue = 0;
 
-	public $products = array();
 	public $extraparams = array();
-
 	public $lines = array();
 	public $line;
 
@@ -231,15 +235,12 @@ class SupplierProposal extends CommonObject
 
 		$this->socid = $socid;
 		$this->id = $supplier_proposalid;
-
-		$this->products = array();
 	}
 
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
 	/**
-	 * 	Add line into array products
-	 *  $this->client doit etre charge
+	 * 	Add line into array ->lines
 	 *
 	 * 	@param  int		$idproduct       	Product Id to add
 	 * 	@param  int		$qty             	Quantity
@@ -247,7 +248,6 @@ class SupplierProposal extends CommonObject
 	 *  @return	int							<0 if KO, >0 if OK
 	 *
 	 *	TODO	Remplacer les appels a cette fonction par generation objet Ligne
-	 *			insere dans tableau $this->products
 	 */
 	public function add_product($idproduct, $qty, $remise_percent = 0)
 	{
@@ -501,7 +501,7 @@ class SupplierProposal extends CommonObject
 			$localtaxes_type = getLocalTaxesFromRate($txtva, 0, $this->thirdparty, $mysoc);
 			$txtva = preg_replace('/\s*\(.*\)/', '', $txtva); // Remove code into vatrate.
 
-			if ($conf->multicurrency->enabled && $pu_ht_devise > 0) {
+			if (!empty($conf->multicurrency->enabled) && $pu_ht_devise > 0) {
 				$pu = 0;
 			}
 
@@ -690,7 +690,7 @@ class SupplierProposal extends CommonObject
 				$txtva = preg_replace('/\s*\(.*\)/', '', $txtva); // Remove code into vatrate.
 			}
 
-			if ($conf->multicurrency->enabled && $pu_ht_devise > 0) {
+			if (!empty($conf->multicurrency->enabled) && $pu_ht_devise > 0) {
 				$pu = 0;
 			}
 
@@ -855,8 +855,6 @@ class SupplierProposal extends CommonObject
 			dol_syslog(get_class($this)."::create ".$this->error, LOG_ERR);
 			return -3;
 		}
-
-		// Check parameters
 		if (!empty($this->ref))	// We check that ref is not already used
 		{
 			$result = self::isExistingObject($this->element, 0, $this->ref); // Check ref is not yet used
@@ -868,6 +866,9 @@ class SupplierProposal extends CommonObject
 				return -1;
 			}
 		}
+
+		// Set tmp vars
+		$delivery_date = empty($this->delivery_date) ? $this->date_livraison : $this->delivery_date;
 
 		// Multicurrency
 		if (!empty($this->multicurrency_code)) list($this->fk_multicurrency, $this->multicurrency_tx) = MultiCurrency::getIdAndTxFromCode($this->db, $this->multicurrency_code, $now);
@@ -923,7 +924,7 @@ class SupplierProposal extends CommonObject
 		$sql .= ", ".($this->cond_reglement_id > 0 ? $this->cond_reglement_id : 'NULL');
 		$sql .= ", ".($this->mode_reglement_id > 0 ? $this->mode_reglement_id : 'NULL');
 		$sql .= ", ".($this->fk_account > 0 ? $this->fk_account : 'NULL');
-		$sql .= ", ".($this->date_livraison != '' ? "'".$this->db->idate($this->date_livraison)."'" : "null");
+		$sql .= ", ".($delivery_date ? "'".$this->db->idate($delivery_date)."'" : "null");
 		$sql .= ", ".($this->shipping_method_id > 0 ? $this->shipping_method_id : 'NULL');
 		$sql .= ", ".($this->fk_project ? $this->fk_project : "null");
 		$sql .= ", ".$conf->entity;
@@ -1076,23 +1077,6 @@ class SupplierProposal extends CommonObject
 			$this->db->rollback();
 			return -1;
 		}
-	}
-
-
-	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
-	/**
-	 *	Insert into DB a supplier_proposal object completely defined by its data members (ex, results from copy).
-	 *
-	 *	@param 		User	$user	User that create
-	 *	@return    	int				Id of the new object if ok, <0 if ko
-	 *	@see       	create()
-	 */
-	public function create_from($user)
-	{
-		// phpcs:enable
-		$this->products = $this->lines;
-
-		return $this->create($user);
 	}
 
 	/**
@@ -1256,7 +1240,7 @@ class SupplierProposal extends CommonObject
 				$this->datev                = $this->db->jdate($obj->datev); // TODO deprecated
 				$this->date_creation = $this->db->jdate($obj->datec); //Creation date
 				$this->date_validation = $this->db->jdate($obj->datev); //Validation date
-				$this->date_livraison       = $this->db->jdate($obj->delivery_date);
+				$this->date_livraison       = $this->db->jdate($obj->delivery_date);	// deprecated
 				$this->delivery_date        = $this->db->jdate($obj->delivery_date);
 				$this->shipping_method_id   = ($obj->fk_shipping_method > 0) ? $obj->fk_shipping_method : null;
 
@@ -1538,6 +1522,7 @@ class SupplierProposal extends CommonObject
 			if ($this->db->query($sql))
 			{
 				$this->date_livraison = $delivery_date;
+				$this->delivery_date = $delivery_date;
 				return 1;
 			} else {
 				$this->error = $this->db->error();

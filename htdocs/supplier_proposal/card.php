@@ -257,7 +257,7 @@ if (empty($reshook))
 			{
 				if ($object->fetch(GETPOST('copie_supplier_proposal')) > 0) {
 					$object->ref = GETPOST('ref');
-					$object->date_livraison = $date_delivery;
+					$object->date_livraison = $date_delivery;	// deprecated
 					$object->delivery_date = $date_delivery;
 					$object->shipping_method_id = GETPOST('shipping_method_id', 'int');
 					$object->cond_reglement_id = GETPOST('cond_reglement_id');
@@ -272,8 +272,6 @@ if (empty($reshook))
 					$object->note = GETPOST('note', 'restricthtml');
 					$object->note_private = GETPOST('note', 'restricthtml');
 					$object->statut = SupplierProposal::STATUS_DRAFT;
-
-					$id = $object->create_from($user);
 				} else {
 					setEventMessages($langs->trans("ErrorFailedToCopyProposal", GETPOST('copie_supplier_proposal')), null, 'errors');
 				}
@@ -1002,7 +1000,7 @@ if (empty($reshook))
 				setEventMessages($object->error, $object->errors, 'errors');
 			}
 		}
-	}	elseif ($action == 'updateline' && $usercancreate && GETPOST('cancel', 'alpha') == $langs->trans('Cancel')) {
+	}	elseif ($action == 'updateline' && $usercancreate && GETPOST('cancel', 'alpha') == $langs->trans("Cancel")) {
 		header('Location: '.$_SERVER['PHP_SELF'].'?id='.$object->id); // Pour reaffichage de la fiche en cours d'edition
 		exit();
 	}
@@ -1357,7 +1355,7 @@ if ($action == 'create')
 	print '<div class="center">';
 	print '<input type="submit" class="button" value="'.$langs->trans("CreateDraft").'">';
 	print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-	print '<input type="button" class="button" value="'.$langs->trans("Cancel").'" onClick="javascript:history.go(-1)">';
+	print '<input type="button" class="button button-cancel" value="'.$langs->trans("Cancel").'" onClick="javascript:history.go(-1)">';
 	print '</div>';
 
 	print "</form>";
@@ -1565,11 +1563,11 @@ if ($action == 'create')
 		print '<form name="editdate_livraison" action="'.$_SERVER["PHP_SELF"].'?id='.$object->id.'" method="post" class="formconsumeproduce">';
 		print '<input type="hidden" name="token" value="'.newToken().'">';
 		print '<input type="hidden" name="action" value="setdate_livraison">';
-		print $form->selectDate($object->date_livraison, 'liv_', '', '', '', "editdate_livraison");
+		print $form->selectDate($object->delivery_date, 'liv_', '', '', '', "editdate_livraison");
 		print '<input type="submit" class="button" value="'.$langs->trans('Modify').'">';
 		print '</form>';
 	} else {
-		print dol_print_date($object->date_livraison, 'daytext');
+		print dol_print_date($object->delivery_date, 'daytext');
 	}
 	print '</td>';
 	print '</tr>';
@@ -1828,8 +1826,8 @@ if ($action == 'create')
 		$form_close .= $object->note;
 		$form_close .= '</textarea></td></tr>';
 		$form_close .= '<tr><td class="center" colspan="2">';
-		$form_close .= '<input type="submit" class="button" name="validate" value="'.$langs->trans('Save').'">';
-		$form_close .= ' &nbsp; <input type="submit" class="button" name="cancel" value="'.$langs->trans('Cancel').'">';
+		$form_close .= '<input type="submit" class="button button-save" name="validate" value="'.$langs->trans("Save").'">';
+		$form_close .= ' &nbsp; <input type="submit" class="button button-cancel" name="cancel" value="'.$langs->trans("Cancel").'">';
 		$form_close .= '<a name="acceptedrefused">&nbsp;</a>';
 		$form_close .= '</td>';
 		$form_close .= '</tr></table></form>';

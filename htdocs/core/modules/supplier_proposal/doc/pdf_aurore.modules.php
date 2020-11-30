@@ -159,7 +159,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 		$this->posxdiscount = 162;
 		$this->postotalht = 174;
 
-		if ($conf->global->PRODUCT_USE_UNITS)
+		if (!empty($conf->global->PRODUCT_USE_UNITS))
 		{
 			$this->posxtva = 101;
 			$this->posxup = 118;
@@ -521,7 +521,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 					$pdf->MultiCell($this->posxunit - $this->posxqty - 0.8, 4, $qty, 0, 'R'); // Enough for 6 chars
 
 					// Unit
-					if ($conf->global->PRODUCT_USE_UNITS)
+					if (!empty($conf->global->PRODUCT_USE_UNITS))
 					{
 						$unit = pdf_getlineunit($object, $i, $outputlangs, $hidedetails, $hookmanager);
 						$pdf->SetXY($this->posxunit, $curY);
@@ -545,7 +545,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
                     */
 
 					// Collecte des totaux par valeur de tva dans $this->tva["taux"]=total_tva
-					if ($conf->multicurrency->enabled && $object->multicurrency_tx != 1) $tvaligne = $object->lines[$i]->multicurrency_total_tva;
+					if (!empty($conf->multicurrency->enabled) && $object->multicurrency_tx != 1) $tvaligne = $object->lines[$i]->multicurrency_total_tva;
 					else $tvaligne = $object->lines[$i]->total_tva;
 
 					$localtax1ligne = $object->lines[$i]->total_localtax1;
@@ -724,7 +724,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 		$posxval = 52;
 
 		// Show shipping date
-		if (!empty($object->date_livraison))
+		if (!empty($object->delivery_date))
 		{
 			$outputlangs->load("sendings");
 			$pdf->SetFont('', 'B', $default_font_size - 2);
@@ -733,7 +733,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 			$pdf->MultiCell(80, 4, $titre, 0, 'L');
 			$pdf->SetFont('', '', $default_font_size - 2);
 			$pdf->SetXY($posxval, $posy);
-			$dlp = dol_print_date($object->date_livraison, "daytext", false, $outputlangs, true);
+			$dlp = dol_print_date($object->delivery_date, "daytext", false, $outputlangs, true);
 			$pdf->MultiCell(80, 4, $dlp, 0, 'L');
 
 			$posy = $pdf->GetY() + 1;
@@ -745,7 +745,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 			$pdf->MultiCell(80, 4, $titre, 0, 'L');
 			$pdf->SetFont('', '', $default_font_size - 2);
 			$pdf->SetXY($posxval, $posy);
-			//$dlp=dol_print_date($object->date_livraison,"daytext",false,$outputlangs,true);
+			//$dlp=dol_print_date($object->delivery_date,"daytext",false,$outputlangs,true);
 			$pdf->MultiCell(80, 4, '', 0, 'L');
 
 			$posy = $pdf->GetY() + 1;
@@ -1216,7 +1216,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 			$pdf->MultiCell($this->posxunit - $this->posxqty - 1, 2, $outputlangs->transnoentities("Qty"), '', 'C');
 		}
 
-		if ($conf->global->PRODUCT_USE_UNITS) {
+		if (!empty($conf->global->PRODUCT_USE_UNITS)) {
 			$pdf->line($this->posxunit - 1, $tab_top, $this->posxunit - 1, $tab_top + $tab_height);
 			if (empty($hidetop)) {
 				$pdf->SetXY($this->posxunit - 1, $tab_top + 1);
@@ -1325,7 +1325,7 @@ class pdf_aurore extends ModelePDFSupplierProposal
 		$posy+=4;
 		$pdf->SetXY($posx,$posy);
 		$pdf->SetTextColor(0,0,60);
-		$pdf->MultiCell(100, 3, $outputlangs->transnoentities("SupplierProposalDate")." : " . dol_print_date($object->date_livraison, "day", false, $outputlangs, true), '', 'R');
+		$pdf->MultiCell(100, 3, $outputlangs->transnoentities("SupplierProposalDate")." : " . dol_print_date($object->delivery_date, "day", false, $outputlangs, true), '', 'R');
         */
 
 		if ($object->thirdparty->code_fournisseur)

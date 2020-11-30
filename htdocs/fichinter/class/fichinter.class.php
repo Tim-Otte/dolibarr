@@ -95,7 +95,10 @@ class Fichinter extends CommonObject
 	 */
 	protected $table_ref_field = 'ref';
 
-	public $socid; // Id client
+	/**
+	 * @var int Thirdparty Id
+	 */
+	public $socid;
 
 	public $author;
 
@@ -118,7 +121,14 @@ class Fichinter extends CommonObject
 	 */
 	public $datem;
 
+	/**
+	 * @var int duration
+	 */
 	public $duration;
+
+	/**
+	 * @var int status
+	 */
 	public $statut = 0; // 0=draft, 1=validated, 2=invoiced, 3=Terminate
 
 	/**
@@ -127,17 +137,23 @@ class Fichinter extends CommonObject
 	public $description;
 
 	/**
-	 * @var int ID
+	 * @var int Contract ID
 	 */
 	public $fk_contrat = 0;
 
 	/**
-	 * @var int ID
+	 * @var int Project ID
 	 */
 	public $fk_project = 0;
 
+	/**
+	 * @var array extraparams
+	 */
 	public $extraparams = array();
 
+	/**
+	 * @var array lines
+	 */
 	public $lines = array();
 
 	/**
@@ -160,6 +176,7 @@ class Fichinter extends CommonObject
 	 */
 	const STATUS_CLOSED = 3;
 
+
 	/**
 	 *	Constructor
 	 *
@@ -168,8 +185,6 @@ class Fichinter extends CommonObject
 	public function __construct($db)
 	{
 		$this->db = $db;
-
-		$this->products = array();
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.ScopeNotCamelCaps
@@ -328,8 +343,7 @@ class Fichinter extends CommonObject
 				// End call triggers
 			}
 
-			if (!$error)
-			{
+			if (!$error) {
 				$this->db->commit();
 				return $this->id;
 			} else {

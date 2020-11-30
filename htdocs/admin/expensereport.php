@@ -238,8 +238,10 @@ foreach ($dirmodels as $reldir)
 						// Show example of numbering model
 						print '<td class="nowrap">';
 						$tmp = $module->getExample();
-						if (preg_match('/^Error/', $tmp)) print '<div class="error">'.$langs->trans($tmp).'</div>';
-						elseif ($tmp == 'NotConfigured') print $langs->trans($tmp);
+						if (preg_match('/^Error/', $tmp)) {
+							$langs->load("errors");
+							print '<div class="error">'.$langs->trans($tmp).'</div>';
+						} elseif ($tmp == 'NotConfigured') print $langs->trans($tmp);
 						else print $tmp;
 						print '</td>'."\n";
 
@@ -475,7 +477,7 @@ print '</td></tr>'."\n";
 print '</table>';
 
 print '<div class="center">';
-print '<input type="submit" class="button" value="'.$langs->trans("Save").'">';
+print '<input type="submit" class="button button-save" value="'.$langs->trans("Save").'">';
 print '</div>';
 
 print '</form>';

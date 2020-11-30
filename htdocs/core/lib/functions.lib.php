@@ -1060,7 +1060,7 @@ function dol_escape_json($stringtoescape)
  *  Returns text escaped for inclusion in HTML alt or title tags, or into values of HTML input fields.
  *
  *  @param      string		$stringtoescape			String to escape
- *  @param		int			$keepb					1=Preserve b tags (otherwise, remove them)
+ *  @param		int			$keepb					1=Keep b tags and escape them, 0=remove them
  *  @param      int         $keepn              	1=Preserve \r\n strings (otherwise, replace them with escaped value). Set to 1 when escaping for a <textarea>.
  *  @param		string		$keepmoretags			'' or 'common' or list of tags
  *  @param		int			$escapeonlyhtmltags		1=Escape only html tags, not the special chars like accents.
@@ -1069,7 +1069,7 @@ function dol_escape_json($stringtoescape)
  */
 function dol_escape_htmltag($stringtoescape, $keepb = 0, $keepn = 0, $keepmoretags = '', $escapeonlyhtmltags = 0)
 {
-	if ($keepmoretags == 'common') $keepmoretags = 'html,body,a,em,i,u,ul,li,br,div,img,font,p,span,strong,table,tr,td,th,tbody';
+	if ($keepmoretags == 'common') $keepmoretags = 'html,body,a,b,em,i,u,ul,li,br,div,img,font,p,span,strong,table,tr,td,th,tbody';
 	// TODO Implement $keepmoretags
 
 	// escape quotes and backslashes, newlines, etc.
@@ -1273,6 +1273,12 @@ function dol_syslog($message, $level = LOG_INFO, $ident = 0, $suffixinfilename =
  */
 function dolButtonToOpenUrlInDialogPopup($name, $label, $buttonstring, $url, $disabled = '')
 {
+    if (strpos($url, '?') > 0) {
+        $url .= '&dol_hide_topmenu=1&dol_hide_leftmenu=1&dol_openinpopup=1';
+    } else {
+        $url .= '?dol_hide_menuinpopup=1&dol_hide_leftmenu=1&dol_openinpopup=1';
+    }
+
 	//print '<input type="submit" class="button bordertransp"'.$disabled.' value="'.dol_escape_htmltag($langs->trans("MediaFiles")).'" name="file_manager">';
 	$out = '<a class="button bordertransp button_'.$name.'"'.$disabled.' title="'.dol_escape_htmltag($label).'">'.$buttonstring.'</a>';
 	$out .= '<script language="javascript">
@@ -1668,13 +1674,11 @@ function dol_banner_tab($object, $paramid, $morehtml = '', $shownav = 1, $fieldi
 							$phototoshow .= '</div>';
 						}
 					}
-				} elseif (!$phototoshow)
-				{
+				} elseif (!$phototoshow) {
 					$phototoshow .= $form->showphoto($modulepart, $object, 0, 0, 0, 'photoref', 'small', 1, 0, $maxvisiblephotos);
 				}
 
-				if ($phototoshow)
-				{
+				if ($phototoshow) {
 					$morehtmlleft .= '<div class="floatleft inline-block valignmiddle divphotoref">';
 					$morehtmlleft .= $phototoshow;
 					$morehtmlleft .= '</div>';
@@ -3096,7 +3100,7 @@ function dol_substr($string, $start, $length, $stringencoding = '', $trunconbyte
  *
  *	@param	string	$string				String to truncate
  *	@param  int		$size				Max string size visible (excluding ...). 0 for no limit. WARNING: Final string size can have 3 more chars (if we added ..., or if size was max+1 or max+2 or max+3 so it does not worse to replace with ...)
- *	@param	string	$trunc				Where to trunc: right, left, middle (size must be a 2 power), wrap
+ *	@param	string	$trunc				Where to trunc: 'right', 'left', 'middle' (size must be a 2 power), 'wrap'
  * 	@param	string	$stringencoding		Tell what is source string encoding
  *  @param	int		$nodot				Truncation do not add ... after truncation. So it's an exact truncation.
  *  @param  int     $display            Trunc is used to display data and can be changed for small screen. TODO Remove this param (must be dealt with CSS)
@@ -3188,9 +3192,9 @@ function img_picto($titlealt, $picto, $moreatt = '', $pictoisfullpath = false, $
 		$pictowithouttext = preg_replace('/(\.png|\.gif|\.svg)$/', '', $picto);
 		if (empty($srconly) && in_array($pictowithouttext, array(
 				'1downarrow', '1uparrow', '1leftarrow', '1rightarrow', '1uparrow_selected', '1downarrow_selected', '1leftarrow_selected', '1rightarrow_selected',
-				'accountancy', 'account', 'accountline', 'action', 'add', 'address', 'bank_account', 'barcode', 'bank', 'bill', 'bookmark', 'bom', 'building',
+				'accountancy', 'account', 'accountline', 'action', 'add', 'address', 'bank_account', 'barcode', 'bank', 'bill', 'billa', 'billr', 'billd', 'bookmark', 'bom', 'building',
 				'cash-register', 'category', 'check', 'clock', 'close_title', 'company', 'contact', 'contract', 'cubes',
-				'delete', 'dolly', 'dollyrevert', 'donation', 'edit', 'ellipsis-h', 'email', 'external-link-alt', 'external-link-square-alt',
+				'delete', 'dolly', 'dollyrevert', 'donation', 'edit', 'ellipsis-h', 'email', 'eraser', 'external-link-alt', 'external-link-square-alt',
 				'filter', 'file-code', 'file-export', 'file-import', 'file-upload', 'folder', 'folder-open', 'globe', 'globe-americas', 'grip', 'grip_title', 'group',
 				'help', 'holiday',
 				'intervention', 'label', 'language', 'list', 'listlight', 'lot',
@@ -4750,21 +4754,22 @@ function price($amount, $form = 0, $outlangs = '', $trunc = 1, $rounding = -1, $
  *	Function to use on each input amount before any numeric test or database insert. A better name for this function
  *  should be roundtext2num().
  *
- *	@param	float	$amount			Amount to convert/clean or round
- *	@param	string	$rounding		''=No rounding
- * 									'MU'=Round to Max unit price (MAIN_MAX_DECIMALS_UNIT)
- *									'MT'=Round to Max for totals with Tax (MAIN_MAX_DECIMALS_TOT)
- *									'MS'=Round to Max for stock quantity (MAIN_MAX_DECIMALS_STOCK)
- *                                  'CR'=Currency rate
- *									Numeric = Nb of digits for rounding
- * 	@param	int		$alreadysqlnb	Put 1 if you know that content is already universal format number
- *	@return	string					Amount with universal numeric format (Example: '99.99999').
- *									If conversion fails, it return text unchanged if $rounding = '' or '0' if $rounding is defined.
- *									If amount is null or '', it returns '' if $rounding = '' or '0' if $rounding is defined..
+ *	@param	string|float	$amount			Amount to convert/clean or round
+ *	@param	string			$rounding		''=No rounding
+ * 											'MU'=Round to Max unit price (MAIN_MAX_DECIMALS_UNIT)
+ *											'MT'=Round to Max for totals with Tax (MAIN_MAX_DECIMALS_TOT)
+ *											'MS'=Round to Max for stock quantity (MAIN_MAX_DECIMALS_STOCK)
+ *      		                            'CR'=Currency rate
+ *											Numeric = Nb of digits for rounding
+ * 	@param	int				$option			Put 1 if you know that content is already universal format number (so no correction on decimal will be done)
+ * 											Put 2 if you know that number is a user input (so we know we don't have to fix decimal separator).
+ *	@return	string							Amount with universal numeric format (Example: '99.99999').
+ *											If conversion fails, it return text unchanged if $rounding = '' or '0' if $rounding is defined.
+ *											If amount is null or '', it returns '' if $rounding = '' or '0' if $rounding is defined..
  *
- *	@see    price()					Opposite function of price2num
+ *	@see    price()							Opposite function of price2num
  */
-function price2num($amount, $rounding = '', $alreadysqlnb = 0)
+function price2num($amount, $rounding = '', $option = 0)
 {
 	global $langs, $conf;
 
@@ -4779,12 +4784,19 @@ function price2num($amount, $rounding = '', $alreadysqlnb = 0)
 	//print "amount=".$amount." html=".$form." trunc=".$trunc." nbdecimal=".$nbdecimal." dec='".$dec."' thousand='".$thousand."'<br>";
 
 	// Convert value to universal number format (no thousand separator, '.' as decimal separator)
-	if ($alreadysqlnb != 1)	// If not a PHP number or unknown, we change format
-	{
+	if ($option != 1) {	// If not a PHP number or unknown, we change or clean format
 		//print 'PP'.$amount.' - '.$dec.' - '.$thousand.' - '.intval($amount).'<br>';
+		if (!is_numeric($amount)) {
+			$amount = preg_replace('/[a-zA-Z\/\\\*\(\)\<\>\-]/', '', $amount);
+		}
+
+		if ($option == 2 && $thousand == '.' && preg_match('/\.(\d\d\d)$/', (string) $amount)) {	// It means the . is used as a thousand separator and string come frominput data, so 1.123 is 1123
+			$amount = str_replace($thousand, '', $amount);
+		}
 
 		// Convert amount to format with dolibarr dec and thousand (this is because PHP convert a number
 		// to format defined by LC_NUMERIC after a calculation and we want source format to be like defined by Dolibarr setup.
+		// So if number was already a good number, it is converted into local Dolibarr setup.
 		if (is_numeric($amount))
 		{
 			// We put in temps value of decimal ("0.00001"). Works with 0 and 2.0E-5 and 9999.10
@@ -4793,10 +4805,12 @@ function price2num($amount, $rounding = '', $alreadysqlnb = 0)
 			$nbofdec = max(0, dol_strlen($temps) - 2); // -2 to remove "0."
 			$amount = number_format($amount, $nbofdec, $dec, $thousand);
 		}
-		//print "QQ".$amount.'<br>';
+		//print "QQ".$amount."<br>\n";
 
 		// Now make replace (the main goal of function)
-		if ($thousand != ',' && $thousand != '.') $amount = str_replace(',', '.', $amount); // To accept 2 notations for french users
+		if ($thousand != ',' && $thousand != '.') {
+			$amount = str_replace(',', '.', $amount); // To accept 2 notations for french users
+		}
 		$amount = str_replace(' ', '', $amount); // To avoid spaces
 		$amount = str_replace($thousand, '', $amount); // Replace of thousand before replace of dec to avoid pb if thousand is .
 		$amount = str_replace($dec, '.', $amount);
@@ -5525,22 +5539,24 @@ function yn($yesno, $case = 1, $color = 0)
 
 /**
  *	Return a path to have a the directory according to object where files are stored.
- *  New usage:       $conf->module->multidir_output[$object->entity].'/'.get_exdir(0, 0, 0, 1, $object, $modulepart)
- *         or:       $conf->module->dir_output.'/'.get_exdir(0, 0, 0, 1, $object, $modulepart)     if multidir_output not defined.
+ *  New usage:       $conf->module->multidir_output[$object->entity].'/'.get_exdir(0, 0, 0, 1, $object, '')
+ *         or:       $conf->module->dir_output.'/'.get_exdir(0, 0, 0, 1, $object, '')     if multidir_output not defined.
  *  Example our with new usage:       $object is invoice -> 'INYYMM-ABCD'
  *  Example our with old usage:       '015' with level 3->"0/1/5/", '015' with level 1->"5/", 'ABC-1' with level 3 ->"0/0/1/"
  *
- *	@param	string	$num            Id of object (deprecated, $object will be used in future)
- *	@param  int		$level		    Level of subdirs to return (1, 2 or 3 levels). (deprecated, global option will be used in future)
- * 	@param	int		$alpha		    0=Keep number only to forge path, 1=Use alpha part afer the - (By default, use 0). (deprecated, global option will be used in future)
- *  @param  int		$withoutslash   0=With slash at end (except if '/', we return ''), 1=without slash at end
- *  @param	Object	$object			Object
- *  @param	string	$modulepart		Type of object ('invoice_supplier, 'donation', 'invoice', ...')
- *  @return	string					Dir to use ending. Example '' or '1/' or '1/2/'
+ *	@param	string|int	$num            Id of object (deprecated, $object will be used in future)
+ *	@param  int			$level		    Level of subdirs to return (1, 2 or 3 levels). (deprecated, global option will be used in future)
+ * 	@param	int			$alpha		    0=Keep number only to forge path, 1=Use alpha part afer the - (By default, use 0). (deprecated, global option will be used in future)
+ *  @param  int			$withoutslash   0=With slash at end (except if '/', we return ''), 1=without slash at end
+ *  @param	Object		$object			Object to use to get ref to forge the path.
+ *  @param	string		$modulepart		Type of object ('invoice_supplier, 'donation', 'invoice', ...'). Use '' for autodetect from $object.
+ *  @return	string						Dir to use ending. Example '' or '1/' or '1/2/'
  */
-function get_exdir($num, $level, $alpha, $withoutslash, $object, $modulepart)
+function get_exdir($num, $level, $alpha, $withoutslash, $object, $modulepart = '')
 {
 	global $conf;
+
+	if (empty($modulepart) && !empty($object->module)) $modulepart = $object->module;
 
 	$path = '';
 
@@ -5556,14 +5572,12 @@ function get_exdir($num, $level, $alpha, $withoutslash, $object, $modulepart)
 		if ($level == 2) $path = substr($num, 1, 1).'/'.substr($num, 0, 1);
 		if ($level == 3) $path = substr($num, 2, 1).'/'.substr($num, 1, 1).'/'.substr($num, 0, 1);
 	} else {
-		// TODO
-		// We will enhance here a common way of forging path for document storage
-		// Here, object->id, object->ref and modulepart are required.
+		// We will enhance here a common way of forging path for document storage.
+		// In a future, we may distribut directories on several levels depending on setup and object.
+		// Here, $object->id, $object->ref and $modulepart are required.
 		//var_dump($modulepart);
-		if (in_array($modulepart, array('thirdparty', 'contact', 'member', 'propal', 'proposal', 'commande', 'order', 'facture', 'invoice',
-			'supplier_order', 'supplier_proposal', 'shipment', 'contract', 'expensereport', 'ficheinter')))
-		{
-			$path = ($object->ref ? $object->ref : $object->id);
+		if (! in_array($modulepart, array('product'))) {	// Test to remove
+			$path = dol_sanitizeFileName(empty($object->ref) ? $object->id : $object->ref);
 		}
 	}
 
@@ -6260,12 +6274,12 @@ function getCommonSubstitutionArray($outputlangs, $onlykey = 0, $exclude = null,
 			$substitutionarray['__REFCLIENT__'] = (isset($object->ref_client) ? $object->ref_client : (isset($object->ref_customer) ? $object->ref_customer : null));
 			$substitutionarray['__REFSUPPLIER__'] = (isset($object->ref_supplier) ? $object->ref_supplier : null);
 			$substitutionarray['__SUPPLIER_ORDER_DATE_DELIVERY__'] = (isset($object->date_livraison) ? dol_print_date($object->date_livraison, 'day', 0, $outputlangs) : '');
-			$substitutionarray['__SUPPLIER_ORDER_DELAY_DELIVERY__'] = $outputlangs->transnoentities("AvailabilityType".$object->availability_code) != ('AvailabilityType'.$object->availability_code) ? $outputlangs->transnoentities("AvailabilityType".$object->availability_code) : $outputlangs->convToOutputCharset(isset($object->availability) ? $object->availability : '');
-
-			$birthday = dol_print_date($object->birth, 'day');
+			$substitutionarray['__SUPPLIER_ORDER_DELAY_DELIVERY__'] = (isset($object->availability_code) ? ($outputlangs->transnoentities("AvailabilityType".$object->availability_code) != ('AvailabilityType'.$object->availability_code) ? $outputlangs->transnoentities("AvailabilityType".$object->availability_code) : $outputlangs->convToOutputCharset(isset($object->availability) ? $object->availability : '')) : '');
 
 			if (is_object($object) && ($object->element == 'adherent' || $object->element == 'member') && $object->id > 0)
 			{
+				$birthday = (empty($object->birth) ? '': dol_print_date($object->birth, 'day'));
+
 				$substitutionarray['__MEMBER_ID__'] = (isset($object->id) ? $object->id : '');
 				if (method_exists($object, 'getCivilityLabel')) $substitutionarray['__MEMBER_CIVILITY__'] = $object->getCivilityLabel();
 				$substitutionarray['__MEMBER_FIRSTNAME__'] = (isset($object->firstname) ? $object->firstname : '');
@@ -6469,13 +6483,13 @@ function getCommonSubstitutionArray($outputlangs, $onlykey = 0, $exclude = null,
 
 		$substitutionarray['__AMOUNT__']          = is_object($object) ? $object->total_ttc : '';
 		$substitutionarray['__AMOUNT_EXCL_TAX__'] = is_object($object) ? $object->total_ht : '';
-		$substitutionarray['__AMOUNT_VAT__']      = is_object($object) ? ($object->total_vat ? $object->total_vat : $object->total_tva) : '';
+		$substitutionarray['__AMOUNT_VAT__']      = is_object($object) ? (isset($object->total_vat) ? $object->total_vat : $object->total_tva) : '';
 		if ($onlykey != 2 || $mysoc->useLocalTax(1)) $substitutionarray['__AMOUNT_TAX2__']     = is_object($object) ? $object->total_localtax1 : '';
 		if ($onlykey != 2 || $mysoc->useLocalTax(2)) $substitutionarray['__AMOUNT_TAX3__']     = is_object($object) ? $object->total_localtax2 : '';
 
 		$substitutionarray['__AMOUNT_FORMATED__']          = is_object($object) ? ($object->total_ttc ? price($object->total_ttc, 0, $outputlangs, 0, 0, -1, $conf->currency) : null) : '';
 		$substitutionarray['__AMOUNT_EXCL_TAX_FORMATED__'] = is_object($object) ? ($object->total_ht ? price($object->total_ht, 0, $outputlangs, 0, 0, -1, $conf->currency) : null) : '';
-		$substitutionarray['__AMOUNT_VAT_FORMATED__']      = is_object($object) ? ($object->total_vat ? price($object->total_vat, 0, $outputlangs, 0, 0, -1, $conf->currency) : ($object->total_tva ? price($object->total_tva, 0, $outputlangs, 0, 0, -1, $conf->currency) : null)) : '';
+		$substitutionarray['__AMOUNT_VAT_FORMATED__']      = is_object($object) ? (isset($object->total_vat) ? price($object->total_vat, 0, $outputlangs, 0, 0, -1, $conf->currency) : ($object->total_tva ? price($object->total_tva, 0, $outputlangs, 0, 0, -1, $conf->currency) : null)) : '';
 		if ($onlykey != 2 || $mysoc->useLocalTax(1)) $substitutionarray['__AMOUNT_TAX2_FORMATED__']     = is_object($object) ? ($object->total_localtax1 ? price($object->total_localtax1, 0, $outputlangs, 0, 0, -1, $conf->currency) : null) : '';
 		if ($onlykey != 2 || $mysoc->useLocalTax(2)) $substitutionarray['__AMOUNT_TAX3_FORMATED__']     = is_object($object) ? ($object->total_localtax2 ? price($object->total_localtax2, 0, $outputlangs, 0, 0, -1, $conf->currency) : null) : '';
 
@@ -6486,7 +6500,7 @@ function getCommonSubstitutionArray($outputlangs, $onlykey = 0, $exclude = null,
 		{
 			$substitutionarray['__TOTAL_TTC__']    = is_object($object) ? $object->total_ttc : '';
 			$substitutionarray['__TOTAL_HT__']     = is_object($object) ? $object->total_ht : '';
-			$substitutionarray['__TOTAL_VAT__']    = is_object($object) ? ($object->total_vat ? $object->total_vat : $object->total_tva) : '';
+			$substitutionarray['__TOTAL_VAT__']    = is_object($object) ? (isset($object->total_vat) ? $object->total_vat : $object->total_tva) : '';
 		}
 	}
 
@@ -6660,6 +6674,14 @@ function complete_substitutions_array(&$substitutionarray, $outputlangs, $object
 			}
 		}
 	}
+	if (!empty($conf->global->ODT_ENABLE_ALL_TAGS_IN_SUBSTITUTIONS)) {
+		// to list all tags in odt template
+		$tags = '';
+		foreach ($substitutionarray as $key => $value) {
+			$tags .= '{' . $key . '} => ' . $value ."\n";
+		}
+		$substitutionarray = array_merge($substitutionarray, array('__ALL_TAGS__' => $tags));
+	}
 }
 
 /**
@@ -6715,7 +6737,7 @@ function get_date_range($date_start, $date_end, $format = '', $outputlangs = '',
  *
  * @param	string	$firstname		Firstname
  * @param	string	$lastname		Lastname
- * @param	int		$nameorder		-1=Auto, 0=Lastname+Firstname, 1=Firstname+Lastname, 2=Firstname, 3=Firstname if defined else lastname
+ * @param	int		$nameorder		-1=Auto, 0=Lastname+Firstname, 1=Firstname+Lastname, 2=Firstname, 3=Firstname if defined else lastname, 4=Lastname, 5=Lastname if defined else firstname
  * @return	string					Firstname + lastname or Lastname + firstname
  */
 function dolGetFirstLastname($firstname, $lastname, $nameorder = -1)
@@ -6725,22 +6747,24 @@ function dolGetFirstLastname($firstname, $lastname, $nameorder = -1)
 	$ret = '';
 	// If order not defined, we use the setup
 	if ($nameorder < 0) $nameorder = (empty($conf->global->MAIN_FIRSTNAME_NAME_POSITION) ? 1 : 0);
-	if ($nameorder && $nameorder != 2 && $nameorder != 3)
-	{
+	if ($nameorder == 1) {
 		$ret .= $firstname;
 		if ($firstname && $lastname) $ret .= ' ';
 		$ret .= $lastname;
-	} elseif ($nameorder == 2 || $nameorder == 3)
-	{
+	} elseif ($nameorder == 2 || $nameorder == 3) {
 		$ret .= $firstname;
-		if (empty($ret) && $nameorder == 3)
-		{
+		if (empty($ret) && $nameorder == 3) {
 			$ret .= $lastname;
 		}
-	} else {
+	} else {	// 0, 4 or 5
 		$ret .= $lastname;
-		if ($firstname && $lastname) $ret .= ' ';
-		$ret .= $firstname;
+		if (empty($ret) && $nameorder == 5) {
+			$ret .= $firstname;
+		}
+		if ($nameorder == 0) {
+			if ($firstname && $lastname) $ret .= ' ';
+			$ret .= $firstname;
+		}
 	}
 	return $ret;
 }
@@ -7240,14 +7264,12 @@ function dol_validElement($element)
 /**
  * 	Return img flag of country for a language code or country code
  *
- * 	@param	string	$codelang	Language code (en_IN, fr_CA...) or Country code (IN, FR)
- *  @param	string	$moreatt	Add more attribute on img tag (For example 'style="float: right"')
+ * 	@param	string	$codelang	Language code ('en_IN', 'fr_CA', ...) or ISO Country code on 2 characters in uppercase ('IN', 'FR')
+ *  @param	string	$moreatt	Add more attribute on img tag (For example 'style="float: right"' or 'class="saturatemedium"')
  * 	@return	string				HTML img string with flag.
  */
 function picto_from_langcode($codelang, $moreatt = '')
 {
-	global $langs;
-
 	if (empty($codelang)) return '';
 
 	if ($codelang == 'auto')
@@ -7260,7 +7282,14 @@ function picto_from_langcode($codelang, $moreatt = '')
 		'ca_ES' => 'catalonia',
 		'da_DA' => 'dk',
 		'fr_CA' => 'mq',
-		'sv_SV' => 'se'
+		'sv_SV' => 'se',
+		'AQ' => 'unknown',
+		'CW' => 'unknown',
+		'IM' => 'unknown',
+		'JE' => 'unknown',
+		'MF' => 'unknown',
+		'BL' => 'unknown',
+		'SX' => 'unknown'
 	);
 
 	if (isset($langtocountryflag[$codelang])) $flagImage = $langtocountryflag[$codelang];

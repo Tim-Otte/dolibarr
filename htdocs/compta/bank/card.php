@@ -549,7 +549,7 @@ if ($action == 'create')
 	print '<div class="center">';
 	print '<input type="submit" class="button" value="'.$langs->trans("CreateAccount").'">';
 	print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-	print '<input type="button" class="button" value="'.$langs->trans("Cancel").'" onClick="javascript:history.go(-1)">';
+	print '<input type="button" class="button button-cancel" value="'.$langs->trans("Cancel").'" onClick="javascript:history.go(-1)">';
 	print '</div>';
 
 	print '</form>';
@@ -885,7 +885,7 @@ if ($action == 'create')
 		print '<td><input size="12" type="text" class="flat" name="account_min_allowed" value="'.(isset($_POST["account_min_allowed"]) ?GETPOST("account_min_allowed") : $object->min_allowed).'"></td></tr>';
 
 		print '<tr><td>'.$langs->trans("BalanceMinimalDesired").'</td>';
-		print '<td ><input size="12" type="text" class="flat" name="account_min_desired" value="'.(isset($_POST["account_min_desired"]) ?GETPOST("account_min_desired") : $object->min_desired).'"></td></tr>';
+		print '<td><input size="12" type="text" class="flat" name="account_min_desired" value="'.(isset($_POST["account_min_desired"]) ?GETPOST("account_min_desired") : $object->min_desired).'"></td></tr>';
 
 		// Web
 		print '<tr><td>'.$langs->trans("Web").'</td>';
@@ -1033,7 +1033,7 @@ if ($action == 'create')
 		print '<div class="center">';
 		print '<input value="'.$langs->trans("Modify").'" type="submit" class="button">';
 		print '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
-		print '<input name="cancel" value="'.$langs->trans("Cancel").'" type="submit" class="button">';
+		print '<input name="cancel" value="'.$langs->trans("Cancel").'" type="submit" class="button button-cancel">';
 		print '</div>';
 
 		print '</form>';
